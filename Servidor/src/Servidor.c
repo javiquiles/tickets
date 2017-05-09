@@ -1,29 +1,25 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
- 
-#define BUF_SIZE 1024
+#include "../include/header.h"
+
  
 int main(int argc, char** argv) {
  
-    char *error;
+	char ipstr[INET6_ADDRSTRLEN];
 
     int sockid, conn_sock, count;
     struct sockaddr_in direccion;
     char buffer[BUF_SIZE];
     int pid;
+	struct sockaddr_storage client;
+	socklen_t addr_size = sizeof(client);
+
+	if (argc < 2) {
+         fprintf(stderr,"ERROR, no port provided\n");
+         exit(1);
+     }
 
     //creamos el socket inet-stream
-    if((sockid=socket(PF_INET,SOCK_STREAM,0))<0) {
-        error="socket";
-        goto err;
+    if((sockid=socket(PF_INET,SOCK_STREAM,0)) < 0) {
+        error("socket");
     }
 
     //seteamos la direccion en la que va a escuchar
@@ -32,38 +28,46 @@ int main(int argc, char** argv) {
     direccion.sin_addr.s_addr=htonl(INADDR_ANY); //0.0.0.0
 
     //asociamos el socket con la direccion (bind)
-    if((bind(sockid, (struct sockaddr *)&direccion, sizeof(direccion)))<0){
-        error="bind";
-        goto err;
+    if((bind(sockid, (struct sockaddr *)&direccion, sizeof(direccion))) < 0){
+        error("bind");
     }
 
     // seteamos la cantidad de conexiones concurrentes en cola
     listen(sockid,1);
 
     //dejamos escuchando al proceso en el socket ip:puerto
-    while(conn_sock=accept(sockid,NULL,NULL)) {
+    while(conn_sock=accept(sockid,(struct sockaddr *)&client, &addr_size)) {
         if (conn_sock<0) {
-                error="accept";
-                goto err;
+                error("accept");
         }
 
-        if (!(pid=fork())) {             //proceso hijo
+        if (!(pid=fork())) { 
             while(count=recv(conn_sock,buffer,BUF_SIZE,0)) {
                 if (count < 0) {
-                    error="recv";
-                    goto err;
-                }
+                    error("recv");
+                }			
+			
+				if (client.ss_family == AF_INET) {
+					struct sockaddr_in *s = (struct sockaddr_in *)&client;
+					inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+				}
 
-                *(buffer+count)='\0';
-                printf("%d recibiendo datos: %s",getpid(),buffer);
-                printf("%d enviando notificacion\n",getpid());
-                count=sprintf(buffer,"Notificacion del proceso %d\n",getpid());
-                *(buffer+count)='\0';
-
-                if((send(conn_sock,buffer,count+1,0))<0) {
-                    error="send";
-                    goto err;
-                }
+				char aux[200];
+				clean(aux);
+				switch(buffer[0]){
+					case 'i':
+						insertTicket(buffer, ipstr);
+						break;
+					case 'l':
+						strcpy(buffer, listTickets(ipstr));
+						send(conn_sock, buffer, strlen(buffer),0);
+						break;
+					case 'e':
+						editarTicket(buffer, ipstr);
+						break;
+					default:
+						exit(1);
+				}
             }
             close(sockid);
             exit(0);
@@ -72,13 +76,5 @@ int main(int argc, char** argv) {
         printf("Conexion delegada al proceso hijo No. %d\n",pid);
         waitpid(pid,NULL,WNOWAIT);
     }
-
-
-    // ya tenemos un conn_sock de datos asociado con el cliente conectado
     return 0;
-
-err:
-    fprintf(stderr,"%d %s %s\n",errno,error,strerror(errno));
-    exit(1);
- 
 }

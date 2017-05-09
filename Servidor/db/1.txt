@@ -1,0 +1,6 @@
+127.0.0.1
+22-10-1233
+Mi nuevo tickets
+Esto es un autor
+Descripcion
+Un estado
