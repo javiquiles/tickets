@@ -65,6 +65,8 @@ void editarTicket(char ticket[], char ip[]){
 	int id, sem_id;
 	
 	char dir_file[30]="db/";
+	
+	//clean(ticket);
 
 	strtok(ticket, "|");
 	id = strtoll(strtok(NULL, "|"), NULL, 10);
@@ -73,7 +75,7 @@ void editarTicket(char ticket[], char ip[]){
 
 	sprintf(dir_file, "db/%d.txt", id);
 
-	if(key = ftok(dir_file, id) < 0){
+	if((key = ftok(dir_file, id)) < 0){
 		error("ftok");
 		exit(1);
 	}
@@ -100,7 +102,7 @@ void editarTicket(char ticket[], char ip[]){
 
 	sleep(10);
 	
-	/*FILE *db;
+	FILE *db;
 	db = fopen(dir_file, "w");
 	if (db==NULL) {fputs ("File error",stderr); exit (1);}
 
@@ -118,8 +120,6 @@ void editarTicket(char ticket[], char ip[]){
 	fputs("\n", db);
 	
 	fclose (db);
-
-*/
 
 	operacion.sem_op = 1;
 	
@@ -140,7 +140,7 @@ void insertTicket(char buf[], char ip[]){
 	/*Cuento la cantidad de tickets en mi bd*/
 	struct dirent *dirent;
 	DIR *dir;
-	int count = -1;
+	long long count = -1;
 	char dir_file[30]="db/";
 
 	dir = opendir(dir_file);
@@ -155,28 +155,15 @@ void insertTicket(char buf[], char ip[]){
 
 	closedir(dir);
 
-	printf("%d", count);
+	printf("%lld", count);
 	
 	//Construyo la url hacia la base de datos
-	sprintf(dir_file, "%s%d.txt", dir_file, count);
+	sprintf(dir_file, "%s%lld.txt", dir_file, count);
 
-	printf("%s", dir_file);
+	printf("dir: %s", dir_file);
 
-	if(key = ftok(dir_file, count) < 0){
-		error("ftok");
-		exit(1);
-	}
+	
 
-	printf("key: %d", key);
-
-	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
-		error("semget");
-		exit(1);
-	}
-	if(semctl(sem_id, 0, SETVAL, 1) < 0){
-		error("semctl");
-		exit(1);
-	}
 	
 	//Creo el archivo y guardo los datos
 	FILE *db;
@@ -198,6 +185,25 @@ void insertTicket(char buf[], char ip[]){
 	fputs("\n", db);
 	
 	fclose ( db);
+
+	if((key = ftok(dir_file, count)) < 0){
+		error("ftok");
+		exit(1);
+	}
+	
+
+	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
+		error("semget");
+		exit(1);
+	}
+
+	if(semctl(sem_id, 0, SETVAL, 1) < 0){
+		error("semctl");
+		exit(1);
+	}
+
+	printf("key: %d | sem_id: %d", key, sem_id);
+	
 }
 
 void error(char error[]){
