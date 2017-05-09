@@ -55,9 +55,8 @@ int main(int argc, char** argv) {
                 }
 
                 *(buffer+count)='\0';
-                printf("%d recibiendo datos: %s",getpid(),buffer);
-                printf("%d enviando notificacion\n",getpid());
-                count=sprintf(buffer,"Notificacion del proceso %d\n",getpid());
+				printf("recibiendo datos: %s", buffer);
+                count=sprintf(buffer,"fecha|titulo|autor|descripcion-27/10/1992|Cumple|Javi|cumpleJavi-27/10/1992|Cumple|Javi|cumpleJavi\n");
                 *(buffer+count)='\0';
 
                 if((send(conn_sock,buffer,count+1,0))<0) {

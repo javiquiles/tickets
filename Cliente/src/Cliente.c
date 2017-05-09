@@ -48,13 +48,13 @@ void listarTickets(char tickets[BUF_SIZE]) {
 
 	token1 = strtok_r(tickets, "-", &saveptr1);
    
-	while (token1 != NULL)  {
-
+	while (token1 != NULL)
+	{
 		token2 = strtok_r(token1, "|", &saveptr2);
 		printf("\n");		
 		
-		while (token2 != NULL) {
-
+		while (token2 != NULL)
+		{
 			printf("%s\n", token2);
 			token2 = strtok_r(NULL, "|", &saveptr2);
 		}
@@ -64,8 +64,6 @@ void listarTickets(char tickets[BUF_SIZE]) {
 }
  
 int main(int argc, char** argv) {
- 
-    //char *error;
 
     int sockid, conn_sock, count, c;
     struct sockaddr_in direccion;
@@ -127,8 +125,8 @@ int main(int argc, char** argv) {
 		break;
 
 		default:
-			printf ("\nOpcion no valida.\n");
-			printf ("\nIngrese: %s + <-i:insertar, -l:listar, -e:editar>\n", argv[0]);
+			printf("\nOpcion no valida.\n");
+			printf("\nIngrese: %s + <-i:insertar, -l:listar, -e:editar>\n", argv[0]);
 			error("invalid option");
 		break;
 	}
