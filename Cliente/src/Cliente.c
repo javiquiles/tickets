@@ -11,6 +11,11 @@
  
 #define BUF_SIZE 1024
 
+void error(char error[]) {	
+	fprintf(stderr,"%d %s %s\n",errno,error,strerror(errno));
+	exit(1);	
+}
+
 char * ingresarTicket(int op, char id_ticket[]) {
 
 	char *ticket = (char *) malloc (BUF_SIZE * sizeof(char));
@@ -60,19 +65,14 @@ void listarTickets(char tickets[BUF_SIZE]) {
  
 int main(int argc, char** argv) {
  
-    char *error;
-	/*char *token1, *token2;
-	char *saveptr1, *saveptr2;*/
+    //char *error;
 
-    int sockid, conn_sock, count;
+    int sockid, conn_sock, count, c;
     struct sockaddr_in direccion;
     char buffer[BUF_SIZE];
 
-	int c;
-
     if((sockid=socket(PF_INET,SOCK_STREAM,0)) < 0) {
-        error="socket";
-        goto err;
+        error("socket");
     }
 
     direccion.sin_family=AF_INET; //address family
@@ -80,11 +80,8 @@ int main(int argc, char** argv) {
     direccion.sin_addr.s_addr=inet_addr(*(argv+1));
 
     if (connect(sockid, (struct sockaddr *)&direccion, sizeof(direccion)) < 0) {
-        error="connect";
-        goto err;
+        error("connect");
     }
-
-	count = strlen(buffer);
 
 	c = getopt (argc, argv, "ile:"); 
     printf("Bienvenido!\n");
@@ -93,10 +90,10 @@ int main(int argc, char** argv) {
 	{
 		case 'i':
 			strcpy(buffer, ingresarTicket(c, NULL));
+			count = strlen(buffer);
 
 			if ((send(sockid, buffer, count, 0)) < 0) {
-				error = "send";
-				goto err;
+				error("send");
 			}
 			
 			printf("\nTicket ingresado.\n");
@@ -104,16 +101,15 @@ int main(int argc, char** argv) {
 		
 		case 'l':
 			sprintf (buffer, "%d", c);
+			count = strlen(buffer);
 
 			if ((send(sockid, buffer, count, 0)) < 0) {
-				error = "send";
-				goto err;
+				error("send");
 			}
 
 			recv(sockid, buffer, BUF_SIZE, 0);
 			if (count < 0) {
-                error="recv";
-                goto err;
+                error("recv");
             }
 
 			listarTickets(buffer);
@@ -121,10 +117,10 @@ int main(int argc, char** argv) {
 
 		case 'e':
 			strcpy(buffer, ingresarTicket(c, argv[4]));
+			count = strlen(buffer);
 
 			if ((send(sockid, buffer, count, 0)) < 0) {
-				error = "send";
-				goto err;
+				error("send");
 			}
 
 			printf("\nTicket editado.\n");
@@ -133,40 +129,11 @@ int main(int argc, char** argv) {
 		default:
 			printf ("\nOpcion no valida.\n");
 			printf ("\nIngrese: %s + <-i:insertar, -l:listar, -e:editar>\n", argv[0]);
-			error = "send";
-			goto err;
+			error("invalid option");
 		break;
 	}
-	
-	
-    /*if ((send(sockid, buffer, count, 0)) < 0) {
-        error = "send";
-        goto err;
-    }
-
-	count=recv(sockid, buffer, BUF_SIZE, 0);
-
-	token1 = strtok_r(buffer, "-", &saveptr1);
-   
-	while (token1 != NULL) 
-	{
-		token2 = strtok_r(token1, "|", &saveptr2);
-		printf("\n");		
-		
-		while (token2 != NULL) 
-		{
-			printf("%s\n", token2);
-			token2 = strtok_r(NULL, "|", &saveptr2);
-		}
-
-		token1 = strtok_r(NULL, "-", &saveptr1);
-	}*/
 
     close(sockid);
 
     return 0;
-
-err:
-	fprintf(stderr,"%d %s %s\n",errno,error,strerror(errno));
-	exit(1);
 }
