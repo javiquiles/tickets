@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 	socklen_t addr_size = sizeof(client);
 
 	if (argc < 2) {
-         fprintf(stderr,"ERROR, no port provided\n");
+         fprintf(stderr,"ERROR, no port provided\nUSAGE: <executable> <port>");
          exit(1);
      }
 
@@ -52,8 +52,6 @@ int main(int argc, char** argv) {
 					inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
 				}
 
-				char aux[200];
-				clean(aux);
 				switch(buffer[0]){
 					case 'i':
 						insertTicket(buffer, ipstr);

@@ -80,8 +80,9 @@ void editarTicket(char ticket[], char ip[]){
 
 	printf("key: %d", key);
 
-	if ((sem_id = semget(key, 1, IPC_CREAT |  IPC_EXCL | 0777)) >= 0) {
-		semctl(sem_id, 0, SETVAL, 1);
+	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
+		error("semget");
+		exit(1);
 	}
 
 	printf("sem_id: %d", sem_id);
@@ -118,11 +119,13 @@ void editarTicket(char ticket[], char ip[]){
 	
 	fclose (db);
 
+*/
+
 	operacion.sem_op = 1;
 	
 	if (semop(sem_id, &operacion, 1) == -1) {
 		error("semop");
-    }*/
+    }
 
 	
 }
@@ -130,11 +133,15 @@ void editarTicket(char ticket[], char ip[]){
 
 void insertTicket(char buf[], char ip[]){
 
+	key_t key;
+	struct sembuf operacion;
+	int sem_id;
+
 	/*Cuento la cantidad de tickets en mi bd*/
 	struct dirent *dirent;
 	DIR *dir;
 	int count = -1;
-	char id[20], dir_file[30]="db/";
+	char dir_file[30]="db/";
 
 	dir = opendir(dir_file);
 	if(dir == NULL){
@@ -151,11 +158,25 @@ void insertTicket(char buf[], char ip[]){
 	printf("%d", count);
 	
 	//Construyo la url hacia la base de datos
-	sprintf(id, "%d", count);
-	strcat(id, ".txt");
-	strcat(dir_file, id);
+	sprintf(dir_file, "%s%d.txt", dir_file, count);
 
 	printf("%s", dir_file);
+
+	if(key = ftok(dir_file, count) < 0){
+		error("ftok");
+		exit(1);
+	}
+
+	printf("key: %d", key);
+
+	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
+		error("semget");
+		exit(1);
+	}
+	if(semctl(sem_id, 0, SETVAL, 1) < 0){
+		error("semctl");
+		exit(1);
+	}
 	
 	//Creo el archivo y guardo los datos
 	FILE *db;
