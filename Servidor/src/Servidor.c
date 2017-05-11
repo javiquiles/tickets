@@ -35,6 +35,27 @@ int main(int argc, char** argv) {
     // seteamos la cantidad de conexiones concurrentes en cola
     listen(sockid,1);
 
+	key_t key;
+	struct sembuf operacion;
+	int sem_id;
+	
+	if((key = ftok("db/tickets.txt", 1)) < 0){
+		error("ftok");
+		exit(1);
+	}
+
+	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
+		error("semget");
+		exit(1);
+	}
+
+	if((semctl(sem_id, 0, SETVAL, 1)) < 0){
+		error("semctl");
+	}
+
+	printf("key inicial: %d", key);
+
+
     //dejamos escuchando al proceso en el socket ip:puerto
     while(conn_sock=accept(sockid,(struct sockaddr *)&client, &addr_size)) {
         if (conn_sock<0) {
@@ -45,7 +66,9 @@ int main(int argc, char** argv) {
             while(count=recv(conn_sock,buffer,BUF_SIZE,0)) {
                 if (count < 0) {
                     error("recv");
-                }			
+                }
+
+				*(buffer+count)='\0';	
 			
 				if (client.ss_family == AF_INET) {
 					struct sockaddr_in *s = (struct sockaddr_in *)&client;

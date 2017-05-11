@@ -67,34 +67,24 @@ char * listTickets() {
 }
 
 void editarTicket(char ticket[], char ip[]){
+	
+	char caracteres[100], aux[100];
+	char newId[3], oldId[3];
 	key_t key;
 	struct sembuf operacion;
-	int id, sem_id;
-	
-	char dir_file[30]="db/";
-	
-	//clean(ticket);
+	int sem_id;
 
-	strtok(ticket, "|");
-	id = strtoll(strtok(NULL, "|"), NULL, 10);
-
-	printf("Ident: %d", id);
-
-	sprintf(dir_file, "db/%d.txt", id);
-
-	if((key = ftok(dir_file, id)) < 0){
+	if((key = ftok("db/tickets.txt", 1)) < 0){
 		error("ftok");
 		exit(1);
 	}
-
-	printf("key: %d", key);
 
 	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
 		error("semget");
 		exit(1);
 	}
 
-	printf("sem_id: %d", sem_id);
+	printf("sem_id: %d\nkey: %d", sem_id, key);
 
 	operacion.sem_num = 0;
 	operacion.sem_op = -1; //Bajamos el semaforo (lo ponemos en rojo).
@@ -105,110 +95,100 @@ void editarTicket(char ticket[], char ip[]){
 		exit(1);
     }
 
-	printf("linea 98");
+	strcpy(aux, ticket);
+	strtok(aux, "|");
 
-	sleep(10);
+
+	strcpy(newId, strtok(NULL, "|"));
+	while(strtok(NULL, "|") != NULL){
+	
+	}	
+	
+	FILE *tmp;
+	tmp = fopen("db/tmp.txt", "w");
+	if (tmp==NULL) {fputs ("File error",stderr); exit (1);}	
 	
 	FILE *db;
-	db = fopen(dir_file, "w");
+	db = fopen("db/tickets.txt", "r");
 	if (db==NULL) {fputs ("File error",stderr); exit (1);}
-
-	fputs(ip, db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs("Pendiente", db);
-	fputs("\n", db);
 	
-	fclose (db);
 
-	operacion.sem_op = 1;
+	while(feof(db) == 0){
+		fgets(caracteres, 100, db);
+		strcpy(aux, caracteres);
+
+		if(strcmp(caracteres, "\0") == 0){
+			
+			goto cerrar;
+			
+		}
+		
+		strtok(caracteres, "|");
+
+		strcpy(oldId, strtok(NULL, "|"));
+
+		if((strcmp(oldId, newId)) != 0){
+			printf("puts: %d\n", fputs(aux, tmp));
+		}else if((strcmp(oldId, newId)) == 0){
+			sprintf(caracteres, "%s%s", ip, ticket+1);
+			fputs(caracteres, tmp);
+			fputs("\n", tmp);
+		}
+		
+		clean(caracteres);
+	}
+
+	cerrar:
+
+		fclose (db);
+		fclose(tmp);
+
+		if(remove("db/tickets.txt") != 0){
+			error("remove");
+			exit(1);
+		}
+		if(rename("db/tmp.txt", "db/tickets.txt") != 0){
+			error("rename");
+		}
+
+				printf("1/2. Cerrando bases");
+
+		operacion.sem_op = 1;
 	
-	if (semop(sem_id, &operacion, 1) == -1) {
-		error("semop");
-    }
+		if (semop(sem_id, &operacion, 1) == -1) {
+			error("semop");
+		}
+
 	
 }
 
 
-void insertTicket(char buf[], char ip[]) {
+void insertTicket(char buf[], char ip[]){
 
-	key_t key;
-	struct sembuf operacion;
-	int sem_id;
+	int count = 0;
+	char caracteres[100];
 
-	/*Cuento la cantidad de tickets en mi bd*/
-	struct dirent *dirent;
-	DIR *dir;
-	long long count = -1;
-	char dir_file[30]="db/";
+	//Creo el archivo y guardo los datos
+	FILE *db;
 
-	dir = opendir(dir_file);
-	if(dir == NULL){
-		error("opendir");
-		exit(0);
-	}
-	
-	while((dirent = readdir(dir)) != NULL){
+	db = fopen("db/tickets.txt", "r+");
+	if (db==NULL) {fputs ("File error", stderr); exit (1);}
+
+	while(feof(db) == 0){
+		fgets(caracteres, 100, db);
 		count++;
 	}
 
-	closedir(dir);
+	printf("%d",count);
 
-	printf("%lld", count);
-	
-	//Construyo la url hacia la base de datos
-	sprintf(dir_file, "%s%lld.txt", dir_file, count);
-
-	printf("dir: %s", dir_file);
-
-	
-
-	
-	//Creo el archivo y guardo los datos
-	FILE *db;
-	db = fopen(dir_file, "w");
-	if (db==NULL) {fputs ("File error",stderr); exit (1);}
-	
-	strtok(buf, "|");
+	sprintf(caracteres, "%d|", count);
 	fputs(ip, db);
+	fputs("|", db);
+	fputs(caracteres, db);
+	fputs(buf+2, db);
 	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs(strtok(NULL, "|"), db);
-	fputs("\n", db);
-	fputs("Pendiente", db);
-	fputs("\n", db);
-	
+
 	fclose (db);
-
-	if((key = ftok(dir_file, count)) < 0){
-		error("ftok");
-		exit(1);
-	}
-	
-
-	if ((sem_id = semget(key, 1, IPC_CREAT | 0777)) < 0) {
-		error("semget");
-		exit(1);
-	}
-
-	if(semctl(sem_id, 0, SETVAL, 1) < 0){
-		error("semctl");
-		exit(1);
-	}
-
-	printf("key: %d | sem_id: %d", key, sem_id);
 	
 }
 
