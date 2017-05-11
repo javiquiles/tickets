@@ -52,20 +52,27 @@ int main(int argc, char** argv) {
 					inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
 				}
 
-				switch(buffer[0]){
+				switch(buffer[0]) {
 					case 'i':
-						insertTicket(buffer, ipstr);
-						break;
+						//insertTicket(buffer, ipstr);
+						registrar(buffer, ipstr);
+					break;
+
 					case 'l':
-						strcpy(buffer, listTickets(ipstr));
+						strcpy(buffer, listTickets());
 						send(conn_sock, buffer, strlen(buffer),0);
-						break;
+					break;
+
 					case 'e':
 						editarTicket(buffer, ipstr);
-						break;
+					break;
+
 					default:
 						exit(1);
+					break;
 				}
+				
+				
             }
             close(sockid);
             exit(0);

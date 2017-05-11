@@ -10,16 +10,21 @@
 #include <netinet/in.h>
 #include <dirent.h>
 #include <sys/sem.h>
+#include <time.h>
 
 #define BUF_SIZE 1024
 
-void clean(char * );
+void clean(char *);
 
-char * listTickets(char []);
+char * listTickets();
 
 void editarTicket(char [], char []);
 
 void insertTicket(char [], char []);
+
+void registrar(char [], char []);
+
+char * obtenerFecha();
 
 void error(char []);
 

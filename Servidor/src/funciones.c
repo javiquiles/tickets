@@ -1,4 +1,4 @@
-#include "header.h"
+#include "../include/header.h"
 
 void clean(char * buff){
 	int i;
@@ -7,55 +7,62 @@ void clean(char * buff){
 	}
 }
 
+char * obtenerFecha() {
+	char *fecha = (char *) malloc (128 * sizeof(char));
 
-char * listTickets(char ip[]){
+	time_t tiempo = time(0);
+    struct tm *tlocal = localtime(&tiempo);
+
+    strftime(fecha, 128, "%d/%m/%y %H:%M:%S", tlocal);
+    
+	return fecha;
+}
+
+void registrar(char buf[], char ip[]) {
+
+	FILE *log;
+	log = fopen("../db/log.txt", "a+");
+
+	if (log == NULL) { fputs ("File error",stderr); exit(1); }
+	
+	fputs(ip, log);
+	fputs(" | ", log);
+	fputs(obtenerFecha(), log);
+	fputs(" | ", log);
+	fputs(strtok(buf, "|"), log);
+	fputs("\n", log);
+	
+	fclose (log);
+}
+
+char * listTickets() {
 
 	char caracteres[100];
 	char aux[200];
-	char * tickets = (char *) malloc(BUF_SIZE * sizeof(char));
+	char * tickets = (char *) malloc (BUF_SIZE * sizeof(char));
 
 	clean(tickets);
 	clean(aux);
 	clean(caracteres);
 
+	FILE *db;
+	db = fopen("db/tickets.txt", "r");
 
-	/*Cuento la cantidad de tickets en mi bd*/
-	struct dirent *dirent;
-	DIR *dir;
-	int count = 0;
-	char id[20], dir_file[30]="db/";
+	if (db == NULL) { fputs ("File error",stderr); exit(1); }
 
-	dir = opendir(dir_file);
-	if(dir == NULL){
-		printf("No se pudo abrir");
-		exit(0);
-	}
-	
-	while((dirent = readdir(dir)) != NULL){
-	
-		sprintf(dir_file, "db/%s", dirent->d_name);	
+	fgets(caracteres, 100, db);
+	caracteres[strlen(caracteres)-1] = '\0';
 
-		FILE *db;
-		db = fopen(dir_file, "r");
-		if (db==NULL) {fputs ("File error",stderr); continue;}
-
-		fgets(caracteres, 100, db);
+	while (feof(db) == 0) 
+	{
 		caracteres[strlen(caracteres)-1] = '\0';
-		if(strcmp(caracteres, ip) == 0){
-			while (feof(db) == 0)
-		 	{
-				caracteres[strlen(caracteres)-1] = '\0';
-				sprintf(aux, "%s|%s", aux, caracteres);
-		 		fgets(caracteres, 100, db);
-		 	}
-			sprintf(tickets, "%s-%s", tickets, aux);
-		}
+		sprintf(aux, "%s|%s", aux, caracteres);
+ 		fgets(caracteres, 100, db);
+		sprintf(tickets, "%s-%s", tickets, aux);
+ 	}
 
-        fclose(db);
+    fclose(db);
 
-	}
-
-	closedir(dir);
 	return tickets;
 }
 
@@ -126,12 +133,11 @@ void editarTicket(char ticket[], char ip[]){
 	if (semop(sem_id, &operacion, 1) == -1) {
 		error("semop");
     }
-
 	
 }
 
 
-void insertTicket(char buf[], char ip[]){
+void insertTicket(char buf[], char ip[]) {
 
 	key_t key;
 	struct sembuf operacion;
@@ -184,7 +190,7 @@ void insertTicket(char buf[], char ip[]){
 	fputs("Pendiente", db);
 	fputs("\n", db);
 	
-	fclose ( db);
+	fclose (db);
 
 	if((key = ftok(dir_file, count)) < 0){
 		error("ftok");
