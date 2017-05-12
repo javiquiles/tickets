@@ -132,6 +132,9 @@ void editarTicket(char ticket[], char ip[]){
 		rewind(db);
 		rewind(tmp);
 
+		db = fopen("db/tickets.txt", "w+");
+		if (db==NULL) {fputs ("File error",stderr); exit (1);}
+
 		while(feof(tmp) == 0){
 			fgets(caracteres, 100, tmp);
 			if((strcmp(caracteres, "")) != 0){

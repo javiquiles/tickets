@@ -1,5 +1,0 @@
-127.0.0.1|1|asd|asd|asd|asd
-127.0.0.1|2|ffff|fffff|fff|ffff
-192.168.224.157|3|123|123|123|123
-127.0.0.1|4|asdasd|asdasdasd|asdasdasdas|dasdasd
-127.0.0.1|5|qwrqwe|qweqweqw|eqweqweqw|eqweqwe
