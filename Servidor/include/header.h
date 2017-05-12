@@ -16,11 +16,11 @@
 
 void clean(char *);
 
-char * listTickets();
+char * enviarTickets();
 
 void editarTicket(char [], char []);
 
-void insertTicket(char [], char []);
+void guardarTicket(char [], char []);
 
 void registrar(char [], char []);
 

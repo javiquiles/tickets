@@ -21,7 +21,7 @@ char * obtenerFecha() {
 void registrar(char buf[], char ip[]) {
 
 	FILE *log;
-	log = fopen("../db/log.txt", "a+");
+	log = fopen("db/log.txt", "a+");
 
 	if (log == NULL) { fputs ("File error",stderr); exit(1); }
 	
@@ -35,7 +35,7 @@ void registrar(char buf[], char ip[]) {
 	fclose (log);
 }
 
-char * listTickets() {
+char * enviarTickets() {
 
 	char caracteres[100];
 	char aux[200];
@@ -45,20 +45,21 @@ char * listTickets() {
 	clean(aux);
 	clean(caracteres);
 
+	printf("linea 48\n");
+
 	FILE *db;
 	db = fopen("db/tickets.txt", "r");
 
 	if (db == NULL) { fputs ("File error",stderr); exit(1); }
 
-	fgets(caracteres, 100, db);
-	caracteres[strlen(caracteres)-1] = '\0';
-
 	while (feof(db) == 0) 
 	{
-		caracteres[strlen(caracteres)-1] = '\0';
-		sprintf(aux, "%s|%s", aux, caracteres);
- 		fgets(caracteres, 100, db);
-		sprintf(tickets, "%s-%s", tickets, aux);
+		fgets(caracteres, 100, db);
+		*(caracteres+(strlen(caracteres)-1))='\0';		
+		//caracteres[strlen(caracteres)-1] = '\0';
+		printf("%s", caracteres);
+		sprintf(tickets, "%s-%s", tickets, caracteres);
+		clean(caracteres);
  	}
 
     fclose(db);
@@ -84,10 +85,8 @@ void editarTicket(char ticket[], char ip[]){
 		exit(1);
 	}
 
-	printf("sem_id: %d\nkey: %d", sem_id, key);
-
 	operacion.sem_num = 0;
-	operacion.sem_op = -1; //Bajamos el semaforo (lo ponemos en rojo).
+	operacion.sem_op = -1;
 	operacion.sem_flg = 0;
 
 	if (semop(sem_id, &operacion, 1) == -1) {
@@ -105,11 +104,11 @@ void editarTicket(char ticket[], char ip[]){
 	}	
 	
 	FILE *tmp;
-	tmp = fopen("db/tmp.txt", "w");
+	tmp = fopen("db/tmp.txt", "w+");
 	if (tmp==NULL) {fputs ("File error",stderr); exit (1);}	
 	
 	FILE *db;
-	db = fopen("db/tickets.txt", "r");
+	db = fopen("db/tickets.txt", "r+");
 	if (db==NULL) {fputs ("File error",stderr); exit (1);}
 	
 
@@ -118,17 +117,14 @@ void editarTicket(char ticket[], char ip[]){
 		strcpy(aux, caracteres);
 
 		if(strcmp(caracteres, "\0") == 0){
-			
 			goto cerrar;
-			
 		}
 		
 		strtok(caracteres, "|");
-
 		strcpy(oldId, strtok(NULL, "|"));
 
 		if((strcmp(oldId, newId)) != 0){
-			printf("puts: %d\n", fputs(aux, tmp));
+			fputs(aux, tmp);
 		}else if((strcmp(oldId, newId)) == 0){
 			sprintf(caracteres, "%s%s", ip, ticket+1);
 			fputs(caracteres, tmp);
@@ -139,47 +135,47 @@ void editarTicket(char ticket[], char ip[]){
 	}
 
 	cerrar:
+		rewind(db);
+		rewind(tmp);
+
+		while(feof(tmp) == 0){
+			fgets(caracteres, 100, tmp);
+			if((strcmp(caracteres, "")) != 0){
+				fputs(caracteres, db);
+				clean(caracteres);
+			}
+		}
 
 		fclose (db);
 		fclose(tmp);
 
-		if(remove("db/tickets.txt") != 0){
+		if(remove("db/tmp.txt") != 0){
 			error("remove");
-			exit(1);
-		}
-		if(rename("db/tmp.txt", "db/tickets.txt") != 0){
-			error("rename");
 		}
 
-				printf("1/2. Cerrando bases");
+		printf("1/2. Cerrando bases");
 
 		operacion.sem_op = 1;
-	
 		if (semop(sem_id, &operacion, 1) == -1) {
 			error("semop");
 		}
-
-	
 }
 
 
-void insertTicket(char buf[], char ip[]){
+void guardarTicket(char buf[], char ip[]){
 
 	int count = 0;
 	char caracteres[100];
 
-	//Creo el archivo y guardo los datos
 	FILE *db;
 
-	db = fopen("db/tickets.txt", "r+");
-	if (db==NULL) {fputs ("File error", stderr); exit (1);}
+	db = fopen("db/tickets.txt", "a+");
+	if (db==NULL) {error("fopen"); exit (1);}
 
 	while(feof(db) == 0){
 		fgets(caracteres, 100, db);
 		count++;
 	}
-
-	printf("%d",count);
 
 	sprintf(caracteres, "%d|", count);
 	fputs(ip, db);

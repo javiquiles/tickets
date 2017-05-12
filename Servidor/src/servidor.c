@@ -1,5 +1,4 @@
 #include "../include/header.h"
-
  
 int main(int argc, char** argv) {
  
@@ -13,26 +12,22 @@ int main(int argc, char** argv) {
 	socklen_t addr_size = sizeof(client);
 
 	if (argc < 2) {
-         fprintf(stderr,"ERROR, no port provided\nUSAGE: <executable> <port>");
+         fprintf(stderr,"ERROR, no port provided\nUSAGE: <executable> <port>\n");
          exit(1);
      }
 
-    //creamos el socket inet-stream
     if((sockid=socket(PF_INET,SOCK_STREAM,0)) < 0) {
         error("socket");
     }
 
-    //seteamos la direccion en la que va a escuchar
-    direccion.sin_family=AF_INET; //address family
-    direccion.sin_port=htons(atoi(*(argv+1)));      //atoi ascii to integer
-    direccion.sin_addr.s_addr=htonl(INADDR_ANY); //0.0.0.0
+    direccion.sin_family=AF_INET;
+    direccion.sin_port=htons(atoi(*(argv+1)));
+    direccion.sin_addr.s_addr=htonl(INADDR_ANY);
 
-    //asociamos el socket con la direccion (bind)
     if((bind(sockid, (struct sockaddr *)&direccion, sizeof(direccion))) < 0){
         error("bind");
     }
 
-    // seteamos la cantidad de conexiones concurrentes en cola
     listen(sockid,1);
 
 	key_t key;
@@ -53,10 +48,6 @@ int main(int argc, char** argv) {
 		error("semctl");
 	}
 
-	printf("key inicial: %d", key);
-
-
-    //dejamos escuchando al proceso en el socket ip:puerto
     while(conn_sock=accept(sockid,(struct sockaddr *)&client, &addr_size)) {
         if (conn_sock<0) {
                 error("accept");
@@ -68,7 +59,7 @@ int main(int argc, char** argv) {
                     error("recv");
                 }
 
-				*(buffer+count)='\0';	
+				*(buffer+count)='\0';
 			
 				if (client.ss_family == AF_INET) {
 					struct sockaddr_in *s = (struct sockaddr_in *)&client;
@@ -77,25 +68,21 @@ int main(int argc, char** argv) {
 
 				switch(buffer[0]) {
 					case 'i':
-						//insertTicket(buffer, ipstr);
-						registrar(buffer, ipstr);
-					break;
-
+						guardarTicket(buffer, ipstr);
+						break;
 					case 'l':
-						strcpy(buffer, listTickets());
+						strcpy(buffer, enviarTickets());
 						send(conn_sock, buffer, strlen(buffer),0);
-					break;
-
+						break;
 					case 'e':
 						editarTicket(buffer, ipstr);
-					break;
-
+						break;
 					default:
 						exit(1);
-					break;
+						break;
 				}
 				
-				
+				registrar(buffer, ipstr);
             }
             close(sockid);
             exit(0);

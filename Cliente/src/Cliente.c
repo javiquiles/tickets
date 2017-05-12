@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 		break;
 		
 		case 'l':
-			sprintf (buffer, "%d", c);
+			sprintf (buffer, "%c", c);
 			count = strlen(buffer);
 
 			if ((send(sockid, buffer, count, 0)) < 0) {
