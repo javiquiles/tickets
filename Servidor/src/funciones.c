@@ -38,26 +38,19 @@ void registrar(char buf[], char ip[]) {
 char * enviarTickets() {
 
 	char caracteres[100];
-	char aux[200];
 	char * tickets = (char *) malloc (BUF_SIZE * sizeof(char));
 
 	clean(tickets);
-	clean(aux);
 	clean(caracteres);
-
-	printf("linea 48\n");
 
 	FILE *db;
 	db = fopen("db/tickets.txt", "r");
 
-	if (db == NULL) { fputs ("File error",stderr); exit(1); }
+	if (db == NULL) { error("db"); }
 
 	while (feof(db) == 0) 
 	{
-		fgets(caracteres, 100, db);
-		*(caracteres+(strlen(caracteres)-1))='\0';		
-		//caracteres[strlen(caracteres)-1] = '\0';
-		printf("%s", caracteres);
+ 		fgets(caracteres, 100, db);
 		sprintf(tickets, "%s-%s", tickets, caracteres);
 		clean(caracteres);
  	}
@@ -66,6 +59,7 @@ char * enviarTickets() {
 
 	return tickets;
 }
+
 
 void editarTicket(char ticket[], char ip[]){
 	
