@@ -1,6 +1,6 @@
 #include "../include/header.h"
 
-void clean(char * buff){
+void clean(char * buff) {
 	int i;
 	for(i = 0; i < strlen(buff); i++){
 		buff[i] = '\0';
@@ -21,9 +21,9 @@ char * obtenerFecha() {
 void registrar(char buf[], char ip[]) {
 
 	FILE *log;
-	log = fopen("../db/log.txt", "a+");
+	log = fopen("db/log.txt", "a+");
 
-	if (log == NULL) { fputs ("File error",stderr); exit(1); }
+	if (log == NULL) { fputs ("File error", stderr); exit(1); }
 	
 	fputs(ip, log);
 	fputs(" | ", log);
@@ -38,27 +38,21 @@ void registrar(char buf[], char ip[]) {
 char * listTickets() {
 
 	char caracteres[100];
-	char aux[200];
 	char * tickets = (char *) malloc (BUF_SIZE * sizeof(char));
 
 	clean(tickets);
-	clean(aux);
 	clean(caracteres);
 
 	FILE *db;
 	db = fopen("db/tickets.txt", "r");
 
-	if (db == NULL) { fputs ("File error",stderr); exit(1); }
-
-	fgets(caracteres, 100, db);
-	caracteres[strlen(caracteres)-1] = '\0';
+	if (db == NULL) { error("db"); }
 
 	while (feof(db) == 0) 
 	{
-		caracteres[strlen(caracteres)-1] = '\0';
-		sprintf(aux, "%s|%s", aux, caracteres);
  		fgets(caracteres, 100, db);
-		sprintf(tickets, "%s-%s", tickets, aux);
+		sprintf(tickets, "%s-%s", tickets, caracteres);
+		clean(caracteres);
  	}
 
     fclose(db);
@@ -66,7 +60,7 @@ char * listTickets() {
 	return tickets;
 }
 
-void editarTicket(char ticket[], char ip[]){
+/*void editarTicket(char ticket[], char ip[]) {
 	key_t key;
 	struct sembuf operacion;
 	int id, sem_id;
@@ -143,7 +137,7 @@ void insertTicket(char buf[], char ip[]) {
 	struct sembuf operacion;
 	int sem_id;
 
-	/*Cuento la cantidad de tickets en mi bd*/
+	//Cuento la cantidad de tickets en mi bd
 	struct dirent *dirent;
 	DIR *dir;
 	long long count = -1;
@@ -210,7 +204,8 @@ void insertTicket(char buf[], char ip[]) {
 
 	printf("key: %d | sem_id: %d", key, sem_id);
 	
-}
+}*/
+
 
 void error(char error[]){
 	fprintf(stderr,"%d %s %s\n",errno,error,strerror(errno));

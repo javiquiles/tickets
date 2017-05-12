@@ -60,11 +60,11 @@ int main(int argc, char** argv) {
 
 					case 'l':
 						strcpy(buffer, listTickets());
-						send(conn_sock, buffer, strlen(buffer),0);
+						send(conn_sock, buffer, strlen(buffer), 0);
 					break;
 
 					case 'e':
-						editarTicket(buffer, ipstr);
+						//editarTicket(buffer, ipstr);
 					break;
 
 					default:
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
         }
 
         printf("Conexion delegada al proceso hijo No. %d\n",pid);
-        waitpid(pid,NULL,WNOWAIT);
+        waitpid(pid, NULL, WNOWAIT);
     }
     return 0;
 }
