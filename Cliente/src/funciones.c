@@ -15,24 +15,24 @@ void clean(char * buff) {
 char * ingresarTicket(int op, char id_ticket[]) {
 
 	char *ticket = (char *) malloc (BUF_SIZE * sizeof(char));
-	char fecha[20];
 	char titulo[20];
 	char autor[30];
-	char descripcion[50];
+	char descripcion[100];
 	
-	printf ("\nFecha de creacion: ");
-	scanf("%s", fecha);
-	printf ("Titulo: ");
-	scanf("%s", titulo);
+	printf ("\nTitulo: ");
+	fgets(titulo, 20, stdin);
+	*(titulo+(strlen(titulo)-1)) = '\0';
 	printf ("Autor: ");
-	scanf("%s", autor);
+	fgets(autor, 30, stdin);
+	*(autor+(strlen(autor)-1)) = '\0';
 	printf ("Descripcion: ");
-	scanf("%s", descripcion);
+	fgets(descripcion, 100, stdin);
+	*(descripcion+(strlen(descripcion)-1)) = '\0';
 	
 	if (op == 'i')
-		sprintf (ticket, "%c|%s|%s|%s|%s", op, fecha, titulo, autor, descripcion);
+		sprintf (ticket, "%c|%s|%s|%s", op, titulo, autor, descripcion);
 	else
-		sprintf (ticket, "%c|%s|%s|%s|%s|%s", op, id_ticket, fecha, titulo, autor, descripcion);
+		sprintf (ticket, "%c|%s|%s|%s|%s", op, id_ticket, titulo, autor, descripcion);
 
 	return ticket;
 }
