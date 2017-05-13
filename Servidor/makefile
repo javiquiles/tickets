@@ -1,6 +1,8 @@
 servidor: servidor.o funciones.o
 	mkdir -p bin
 	mkdir -p obj
+	mkdir -p db
+	touch db/tickets.txt
 	gcc -o bin/servidor servidor.o funciones.o
 	mv servidor.o obj/
 	mv funciones.o obj/

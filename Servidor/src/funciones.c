@@ -99,14 +99,14 @@ void editarTicket(char ticket[], char ip[]){
 	
 	FILE *tmp;
 	tmp = fopen("db/tmp.txt", "w+");
-	if (tmp==NULL) {fputs ("File error",stderr); exit (1);}	
+	if (tmp == NULL) { fputs ("File error",stderr); exit (1); }	
 	
 	FILE *db;
 	db = fopen("db/tickets.txt", "r+");
-	if (db==NULL) {fputs ("File error",stderr); exit (1);}
+	if (db == NULL) { fputs ("File error",stderr); exit (1); }
 	
 
-	while(feof(db) == 0){
+	while(feof(db) == 0) {
 		fgets(caracteres, 100, db);
 		strcpy(aux, caracteres);
 
