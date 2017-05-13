@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h> //Quita un warning
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
@@ -8,6 +9,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h> //Quita un warning.
 #include <dirent.h>
 #include <sys/sem.h>
 #include <time.h>
